@@ -15,14 +15,19 @@ export function startScheduler(bot: TelegramBot, taskKeyboard: object): void {
   if (TELEGRAM_CHAT_ID) {
     if (scheduledTask == null) {
       bot.sendMessage(TELEGRAM_CHAT_ID, 'Уведомления включены', taskKeyboard)
-      scheduledTask = schedule('0 4,7,10,13,16 * * *', async () => {
-        const res = await client.query('SELECT * FROM tasks')
-        const tasks = res.rows.map((task) => `${task.id}: ${task.description}`).join('\n')
-        bot.sendMessage(TELEGRAM_CHAT_ID, tasks || 'Нет активных задач')
-      },
-      {
-        timezone: 'Europe/Moscow'
-      })
+      scheduledTask = schedule(
+        '0 4,7,10,13,16 * * *',
+        async () => {
+          const res = await client.query('SELECT * FROM tasks')
+          const tasks = res.rows.map((task) => `${task.id}: ${task.description}`).join('\n')
+          if (tasks) {
+            bot.sendMessage(TELEGRAM_CHAT_ID, tasks)
+          }
+        },
+        {
+          timezone: 'Europe/Moscow'
+        }
+      )
     } else {
       bot.sendMessage(TELEGRAM_CHAT_ID, 'Уведолмения уже включены', taskKeyboard)
     }
